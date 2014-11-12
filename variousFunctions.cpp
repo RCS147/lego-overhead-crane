@@ -13,6 +13,11 @@ struct Block() {
 	
 }
 
+void zero(){
+	//move x,y,z motors in the negative direction until limits are hit
+	//set encoders to zero
+}
+
 void sort(){
 	// @param Block
 	// if colour already in inventory, put it with other colours
@@ -67,3 +72,26 @@ void move (xCurrent, yCurrent,x,y,z){
 		//x motor has negative value
 	}
 }
+
+void retrieve (int nObjects){
+	//pickOrder
+	//for loop
+		//move to each location
+		//pick up and verify object has been retrieved
+		//move back to loading bay and unload
+		
+}
+
+void store(){
+	//move to loading bay
+	//pick up object and detect colour
+	//determine storage location
+	//move to storage location
+	//verify object has been stored
+}
+
+int pickOrder (int n){
+	//order picking algorithm
+	return n;
+}
+
