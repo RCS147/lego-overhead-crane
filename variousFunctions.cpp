@@ -1,5 +1,5 @@
 // v.1
-// Last revision made Nov. 11, 2014 by Rachel Lee
+// Last revision made Nov. 12, 2014 by Yaning Tan
 
 int const Y_COL=3;
 int const X_ROW=2;
