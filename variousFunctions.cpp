@@ -1,11 +1,12 @@
 // v.1
 // Last revision made Nov. 12, 2014 by Yaning Tan
+// Revised Nov. 13, 2014 by Rachel Lee - added bfs function to be called by findClosestColour and findStorePos
 
 int const Y_COL=3;
 int const X_ROW=2;
 int const Z_HI=4;
 
-int grid[X_ROW][Y_COL][Z_HI]={-1};
+int grid[X_ROW][Y_COL][Z_HI];
 
 struct Block() {
 	int x, y,z;
@@ -18,50 +19,106 @@ void zero(){
 	//set encoders to zero
 }
 
-void sort(){
-	// @param Block
-	// if colour already in inventory, put it with other colours
-	// else, put in empty space
-	// update array height
-	 int xInd, yInd, zInd=-1,xEm,yEm, needEmpty=0;
-	 for (int i=0;i<X_ROW;i++){
-	 	for (int j=0;j<Y_COL;j++){
-	 		
-	 		// If a pile for the colour exists, keep track of those coordinates
-	 		if (grid[i][j][0]==color){
-	 			for (int k=0;k<Z_HI;k++){
-	 				// Finds height of stack
-	 				if (k>zInd)
-	 					zInd=k;
+// Used in findClosestColor function in order to have a list of arrays
+struct Ar{
+		int elem[2];
+	};
+	
+void findClosestColor (int color, int & xPos, int & yPos, bool findStack){
+	// Searches a grid by starting at one corner and looking at adjacent squares
+	// if findStack, changes xPos, yPos to location of nearest available stack
+	// 		doesn't change if no available stacks
+	// if !findStack, changes xPos, yPos to location of nearest colour stack
+	
+	/* @param color				The color to look for
+	// @param xPos, yPos		The coordinates of where the arm should go to findStack/retrieve
+	// @param findStack			True if looking for a stack of a specific colour with space available, false if otherwise
+	//							(i.e. Looking for empty space or looking to retrieve something)
+	*/
+	cout << "Looking for "<<color<<endl;
+	int x,y;
+	list <Ar> q; // A queue to findStack what to look at next
+	bool visited[X_ROW][Y_COL]={false};
+	bool leave=false;
 
-	 				needEmpty=-1;
-	 			}
-	 		}
+	Ar a;
+	Ar current;
+	a.elem[0]=1;
+	a.elem[1]=0;
+	q.push_back(a);
+	
+	a.elem[0]=0;
+	a.elem[1]=1;
+	q.push_back(a);
+	
+	// Searches while there are still elements to search or until the colour is found
+	while (!q.empty() && !leave){
+		current = q.front();
+		q.pop_front();
+		
+		x = current.elem[0];
+		y = current.elem[1];
+		
+		if (!visited[x][y]){
+			// If called by retrieve function and found colour stack
+			// Or if called by findStack function and found colour stack and stack has space for another box
+			if (grid[x][y][0]==color && !findStack || grid[x][y][0]==color && findStack && grid[x][y][Z_HI-1]!=color){
+				xPos=x;
+				yPos=y;
+				leave=true;
+			}
+			
+			
+			else {
+				visited[x][y]=true;
+				
+				// Adds the adjacent squares to the search queue
+				if (x+1<X_ROW){
+					a.elem[0]=x+1;
+					q.push_back(a);
+				}
+			
+				if (y+1<Y_COL){
+					a.elem[0]=x;
+					a.elem[1]=y+1;
+					q.push_back(a);
+				}
+			}	
+		}
+	}
+}
 
- 			// Save the first empty grid location in case the colour is not found
- 			else if (needEmpty==0 && grid[i][j][0]==-1){
- 				xEm=i;
- 				yEm=j;
- 				needEmpty=1;
- 			}
- 				
- 		}
-	 	
-	 }
-	 
-	 if (zInd==Z_HI-1 || needEmpty==1){
-	 	// If stack of colours is too high or no existing stack, put in empty space
-	 	// Assume will never have more blocks than can fit in warehouse
-	 	// Assume will not have more colours than can fit
-	 	
-		// move block to [xEm][yEm][0]
-		//update grid
-	 }
-	 
-	 else{
-	 	//move block to [xInd][yInd][zInd+1]
-	 	// update grid
-	 }
+void findStorePos(int color, int&x,int&y, int&z){
+	// Determines where the block should be stored
+	/* @param color			Colour to look for
+	// @param x, y			Coordinates
+	*/
+	int tempX,tempY;
+	z=0; // z-coordinate set to 0 by default
+	
+	findClosestColor(-1,x,y,false);
+	
+	tempX=x;
+	tempY=y;
+	
+	findClosestColor(color,tempX,tempY,true);
+	cout<< tempX<<" "<<tempY<<endl;
+	
+	/* 	If an existing stack has space for another block, xPos and yPos would
+	//	have changed in the second call of bfs
+	// 	Loop through stack (z-direction) to find height of stack
+	*/
+	if (tempX!=x && tempY!=y){
+		x=tempX;
+		y=tempY;
+		
+		//Finds height of stack
+		for (int i=0;i<Z_HI;i++)
+			if (grid[x][y][i]==color && i>z)
+				z=i;
+				
+		z+=1; // Next space up is where box is stored
+	}
 }
 
 void move (xCurrent, yCurrent,x,y,z){
