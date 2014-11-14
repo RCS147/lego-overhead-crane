@@ -1,6 +1,7 @@
 // v.1
 // Last revision made Nov. 12, 2014 by Yaning Tan
 // Revised Nov. 13, 2014 by Rachel Lee - added bfs function to be called by findClosestColour and findStorePos
+// Revised Nov. 14, 2014 by Rachel Lee - merged bfs function and findClosestColor, integrated findClosestColor in findStorePos
 
 int const Y_COL=3;
 int const X_ROW=2;
