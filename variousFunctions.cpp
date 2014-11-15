@@ -7,6 +7,19 @@ int const Y_COL=3;
 int const X_ROW=2;
 int const Z_HI=4;
 
+int const X_MAX = 1150;
+int const Y_MAX = 760;
+int const Z_MAX = 300;
+
+short const motorX = motorA;
+short const motorY = motorB;
+short const motorZ = motorC;
+
+short const limitX = S1;
+short const limitY = S2;
+short const limitZ = S3;
+short const color = S4;
+
 int grid[X_ROW][Y_COL][Z_HI];
 
 struct Block() {
@@ -123,11 +136,55 @@ void findStorePos(int color, int&x,int&y, int&z){
 }
 
 void move (xCurrent, yCurrent,x,y,z){
-	if (xCurrent<x)){
-		//x motor has positive value
-	}
-	else{
-		//x motor has negative value
+	//Retract the forks to avoid collisions
+	motor[motorZ] = -50;
+	while(SensorValue[limitZ] != 1);
+	motor[motorZ] = 0;
+	nMotorEncoder[motorZ] = 0;
+	
+	//Set the motor encoder targets
+	//the X_MAX, Y_MAX and Z_MAX values store the number of encoder counts from
+	//th zero position to the maximum reach of the crane. 
+	nMotorEncoderTarget[motorX] = (x - xCurrent)*X_MAX/X_ROW;
+	nMotorEncoderTarget[motorY] = (y - yCurrent)*Y_MAX/Y_COL;
+	nMotorEncoderTarget[motorZ] = (z)*Z_MAX/Z_HI;
+	
+	//Move to the proper X, Y position
+	motor[motorX] = sgn(x - xCurrent)*50;
+	motor[motorY] = sgn(y - yCurrent)*50;
+	
+	while(motor[motorX] > 0 && motor[motorY] > 0)
+	{
+		if(nMotorRunState[motorX] == runStateHoldPosition)
+		{
+			motor[motorX] = 0;
+		}
+		if(nMotorRunState[motorY] == runStateHoldPosition)
+		{
+			motor[motorY] = 0;
+		}
+		
+		//If the limit switch is tripped, stop the motor and reset the encoders
+		if(SensorValue[limitX] != 0)
+		{
+			motor[motorX] = 0;
+			nMotorEncoder[motorX] = 0;
+		}
+		if(SensorValue[limitY] != 0)
+		{
+			motor[motorY] = 0;
+			nMotorEncoder[motorY] = 0;
+		}
+	}	
+	
+	//Lower the arm
+	motor[motorZ] = 50;
+	while(motor[motorZ] > 0)
+	{
+		if(nMotorRunState[motorZ] == runStateHoldPosition)
+		{
+			motor[motorZ] = 0;
+		}
 	}
 }
 
